@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome to Rian Hub!{% endblock %}
+
+{% block content %}
+<div class="container mt-5 text-center">
+    <h1 class="display-4">👋 Welcome to Rian Hub!</h1>
+    <p class="lead">What would you like to use today?</p>
+
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-5 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">📊 Calculator</h5>
+                    <p class="card-text">Calculate compound interest and plan your financial future.</p>
+                    <a href="{% url 'calculator:calculator' %}" class="btn btn-primary btn-lg">Go to Calculator</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">🛒 Shop</h5>
+                    <p class="card-text">Explore our collection of items and add them to your cart.</p>
+                    <a href="{% url 'shop:home' %}" class="btn btn-success btn-lg">Visit the Shop</a>
+                </div>
+            </div>
+        </div>
+        {# New Football Selection Card #}
+        <div class="col-md-5 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">⚽ Football Selection</h5>
+                    <p class="card-text">Check your eligibility for our football team selection.</p>
+                    <a href="{% url 'football_selection:form' %}" class="btn btn-warning btn-lg text-white">Apply
+                        Now</a>
+                </div>
+            </div>
+        </div>
+        {# New Rock Paper Scissors Card #}
+        <div class="col-md-5 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">🪨📄✂️ Rock Paper Scissors</h5>
+                    <p class="card-text">Play a classic game of Rock, Paper, Scissors against the computer.</p>
+                    <a href="{% url 'rps_game:play' %}" class="btn btn-info btn-lg text-white">Play Game</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

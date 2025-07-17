@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My Project{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            {# Brand link to the new home page #}
+            <a class="navbar-brand" href="{% url 'main:home' %}">Rian Hub</a>
+            <div class="navbar-nav">
+                {# Navigation link to the new home page #}
+                <a class="nav-link" href="{% url 'main:home' %}">Home</a>
+                {# Navigation link to the calculator page #}
+                <a class="nav-link" href="{% url 'calculator:calculator' %}">Calculator</a>
+                {# Navigation link to the shop page #}
+                <a class="nav-link" href="{% url 'shop:home' %}">Shop</a>
+                {# New navigation link to the Football Selection page #}
+                <a class="nav-link" href="{% url 'football_selection:form' %}">Football</a>
+                {# New navigation link to the Rock Paper Scissors page #}
+                <a class="nav-link" href="{% url 'rps_game:play' %}">RPS Game</a>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+
+</html>

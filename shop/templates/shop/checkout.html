@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    {# The 'empty' variable from the view will now signify if the cart was just cleared for redirect #}
+    {% if empty %}
+    <div class="alert alert-info">
+        <h4>Redirecting to Pathao Pay...</h4>
+        <p>Please complete your payment on the next page. Once done, you can return here.</p>
+        <a href="{% url 'shop:home' %}" class="btn btn-primary">Return to Shop</a>
+    </div>
+    {% else %}
+    <h1>🧾 Checkout</h1>
+    <div class="card mt-4">
+        <div class="card-body">
+            <h5>Order Summary</h5>
+            <ul class="list-group list-group-flush mb-3">
+                {% for item in cart_items %}
+                <li class="list-group-item">
+                    {{ item.product.name }} - ${{ item.product.price }}
+                </li>
+                {% endfor %}
+            </ul>
+            <h4>Total: ${{ total }}</h4>
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success mt-3 btn-lg">Proceed to Pathao Pay</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
