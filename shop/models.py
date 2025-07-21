@@ -15,3 +15,15 @@ class CartItem(models.Model):
 
     class Meta:
         ordering = ['-added_at']
+
+
+class PurchaseHistory(models.Model):
+    purchase_date = models.DateTimeField(auto_now_add=True)
+    total_amount = models.DecimalField(max_digits=8, decimal_places=2)
+    items_purchased = models.TextField()
+
+    class Meta:
+        ordering = ['-purchase_date']
+
+    def __str__(self):
+        return f"Purchase on {self.purchase_date.strftime('%Y-%m-%d %H:%M')} - ${self.total_amount}"

@@ -1,32 +1,46 @@
 {% extends "base.html" %}
-
+{% block title %}Checkout{% endblock %}
 {% block content %}
-<div class="container mt-5">
-    {# The 'empty' variable from the view will now signify if the cart was just cleared for redirect #}
-    {% if empty %}
-    <div class="alert alert-info">
-        <h4>Redirecting to Pathao Pay...</h4>
-        <p>Please complete your payment on the next page. Once done, you can return here.</p>
-        <a href="{% url 'shop:home' %}" class="btn btn-primary">Return to Shop</a>
+<div class="container mt-4">
+    <h2 class="text-center mb-4">🛒 Checkout</h2>
+
+    {% if not empty %}
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Order Summary</h5>
+
+                    <ul class="list-group list-group-flush mb-3">
+                        {% for item in cart_items %}
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>{{ item.product.name }}</span>
+                            <span>${{ item.product.price }}</span>
+                        </li>
+                        {% endfor %}
+                        <li class="list-group-item d-flex justify-content-between">
+                            <strong>Total: ${{ total }}</strong>
+                        </li>
+                    </ul>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success w-100 btn-lg">
+                            💳 Proceed to Payment
+                        </button>
+                    </form>
+
+                    <a href="{% url 'shop:home' %}" class="btn btn-secondary w-100 mt-2">
+                        ← Back to Shop
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
     {% else %}
-    <h1>🧾 Checkout</h1>
-    <div class="card mt-4">
-        <div class="card-body">
-            <h5>Order Summary</h5>
-            <ul class="list-group list-group-flush mb-3">
-                {% for item in cart_items %}
-                <li class="list-group-item">
-                    {{ item.product.name }} - ${{ item.product.price }}
-                </li>
-                {% endfor %}
-            </ul>
-            <h4>Total: ${{ total }}</h4>
-            <form method="post">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-success mt-3 btn-lg">Proceed to Pathao Pay</button>
-            </form>
-        </div>
+    <div class="text-center">
+        <h4>Your cart is empty!</h4>
+        <a href="{% url 'shop:home' %}" class="btn btn-primary">Continue Shopping</a>
     </div>
     {% endif %}
 </div>

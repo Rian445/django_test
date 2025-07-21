@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Thank You{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="card border-success">
+                <div class="card-body">
+                    <h2 class="text-success mb-4">🎉 Thank You for Your Purchase!</h2>
+                    <p class="lead">Your order has been processed successfully.</p>
+                    <p>You will receive a confirmation shortly.</p>
+
+                    <div class="mt-4">
+                        <a href="{% url 'shop:home' %}" class="btn btn-primary">
+                            🛒 Continue Shopping
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
