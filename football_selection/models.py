@@ -1,4 +1,3 @@
-# football_selection/models.py
 from django.db import models
 
 

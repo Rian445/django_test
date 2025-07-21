@@ -2,10 +2,10 @@
 from django.shortcuts import render
 import random
 
-from .models import RPSHistory          # NEW
+from .models import RPSHistory
 
 
-def play_rps(request):                                          # [2]
+def play_rps(request):
     user_choice = computer_choice = result_text = None
 
     if request.method == 'POST':
@@ -36,6 +36,6 @@ def play_rps(request):                                          # [2]
         'user_choice': user_choice,
         'computer_choice': computer_choice,
         'result': result_text,
-        'history': RPSHistory.objects.all()[:10],   # show 10 latest rounds
+        'history': RPSHistory.objects.all()[:10],
     }
-    return render(request, 'rps_game/play.html', context)       # [2]
+    return render(request, 'rps_game/play.html', context)

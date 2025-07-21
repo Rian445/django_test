@@ -13,24 +13,22 @@ def selection_form(request):
         user_age_str = request.POST.get('user_age', '').strip()
         user_gender = request.POST.get('user_gender', '').strip().upper()
 
-        # Validate Age (keeping your exact logic)
         try:
             user_age = int(user_age_str)
         except ValueError:
             message = "Please enter a valid number for age."
             user_age = ''
 
-        # Validate Gender (keeping your exact logic)
         if message is None:
             if user_gender not in ["MALE", "FEMALE"]:
                 message = "Invalid gender. Please select either 'Male' or 'Female'."
             elif not user_name:
                 message = "Please enter your name."
             else:
-                # Your existing decision logic with history saving
+
                 if 14 <= user_age <= 20 and user_gender == "MALE":
                     message = f"Hey {user_name}, we are delighted to inform you that you are selected."
-                    # Save to history
+
                     SelectionHistory.objects.create(
                         name=user_name,
                         age=user_age,
@@ -69,7 +67,6 @@ def selection_form(request):
                         reason="Too old (must be 14-20 years old)"
                     )
 
-    # Get history to display on same page
     history = SelectionHistory.objects.all()[:10]  # Show latest 10 records
 
     context = {

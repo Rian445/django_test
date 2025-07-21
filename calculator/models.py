@@ -11,9 +11,7 @@ class CalculationHistory(models.Model):
     total_amount = models.DecimalField(max_digits=15, decimal_places=2)
     millionaire_time = models.DecimalField(
         max_digits=5, decimal_places=2, null=True, blank=True)
-    # is_millionaire is a derived property, so we don't need to store it directly.
-    # We can calculate it on the fly or add it if needed for filtering/display.
-    # Automatically sets the creation time
+
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

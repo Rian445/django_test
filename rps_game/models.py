@@ -1,4 +1,3 @@
-# rps_game/models.py
 from django.db import models
 
 
@@ -20,7 +19,7 @@ class RPSHistory(models.Model):
     played_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['-played_at']          # newest first
+        ordering = ['-played_at']
 
     def __str__(self):
         return f'{self.get_user_choice_display()} vs {self.get_computer_choice_display()} → {self.get_result_display()}'
