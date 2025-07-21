@@ -1,3 +1,31 @@
 from django.db import models
 
-# Create your models here.
+
+class CalculationHistory(models.Model):
+    """
+    Model to store the history of compound interest calculations.
+    """
+    principle = models.DecimalField(max_digits=10, decimal_places=2)
+    rate = models.DecimalField(max_digits=5, decimal_places=2)
+    time = models.IntegerField()
+    total_amount = models.DecimalField(max_digits=15, decimal_places=2)
+    millionaire_time = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True)
+    # is_millionaire is a derived property, so we don't need to store it directly.
+    # We can calculate it on the fly or add it if needed for filtering/display.
+    # Automatically sets the creation time
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        """
+        String representation of the CalculationHistory object.
+        """
+        return f"P: ${self.principle}, R: {self.rate}%, T: {self.time} years"
+
+    class Meta:
+        """
+        Meta options for the CalculationHistory model.
+        Orders records by timestamp in descending order (most recent first).
+        """
+        ordering = ['-timestamp']
+        verbose_name_plural = "Calculation Histories"

@@ -52,6 +52,81 @@
                 {% endif %}
             </div>
         </div>
+
+        <!-- Selection History Section - Table View -->
+        {% if history %}
+        <div class="card mt-4">
+            <div class="card-header bg-secondary text-white">
+                <h4 class="text-center mb-0">⚽ Selection History</h4>
+            </div>
+            <div class="card-body p-0">
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-striped table-sm mb-0">
+                        <thead class="bg-secondary text-white text-center small sticky-top">
+                            <tr>
+                                <th>Name</th>
+                                <th>Age</th>
+                                <th>Gender</th>
+                                <th>Status</th>
+                                <th>Reason</th>
+                                <th>Applied At</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-center small">
+                            {% for record in history %}
+                            <tr
+                                class="{% if record.status == 'SELECTED' %}table-success{% else %}table-danger{% endif %}">
+                                <td class="align-middle">{{ record.name }}</td>
+                                <td class="align-middle">{{ record.age }}</td>
+                                <td class="align-middle">{{ record.get_gender_display }}</td>
+                                <td class="align-middle">
+                                    {% if record.status == 'SELECTED' %}
+                                    ✅ {{ record.get_status_display }}
+                                    {% else %}
+                                    ❌ {{ record.get_status_display }}
+                                    {% endif %}
+                                </td>
+                                <td class="align-middle">{{ record.reason }}</td>
+                                <td class="align-middle">{{ record.decided_at|date:"M d, Y H:i" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if history.count >= 10 %}
+                <div class="alert alert-info text-center mt-3 mb-0 small">
+                    📋 Showing latest 10 applications
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% elif message %}
+        <div class="card mt-4">
+            <div class="card-header bg-secondary text-white">
+                <h4 class="text-center mb-0">⚽ Selection History</h4>
+            </div>
+            <div class="card-body text-center">
+                <div class="alert alert-light small">
+                    <h5>📝 No Previous Applications</h5>
+                    <p class="mb-0">This is the first application submitted!</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
+
+<style>
+    .fs-6 {
+        font-size: 1.1rem !important;
+    }
+
+    .sticky-top {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+</style>
+
 {% endblock %}

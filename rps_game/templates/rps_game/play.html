@@ -1,34 +1,104 @@
 {% extends "base.html" %}
-
-{% block title %}Rock Paper Scissors{% endblock %}
-
+{% block title %}Rock-Paper-Scissors{% endblock %}
 {% block content %}
-<div class="container mt-5">
-    <h1 class="text-center mb-4">🪨📄✂️ Rock Paper Scissors</h1>
+<div class="container mt-4">
 
-    <div class="card p-4 shadow-sm">
-        <form method="post" class="text-center">
-            {% csrf_token %}
-            <h5 class="mb-3">Choose your move:</h5>
-            <div class="d-grid gap-2 col-md-6 mx-auto">
-                <button type="submit" name="user_choice" value="R" class="btn btn-primary btn-lg">Rock 🪨</button>
-                <button type="submit" name="user_choice" value="P" class="btn btn-success btn-lg">Paper 📄</button>
-                <button type="submit" name="user_choice" value="S" class="btn btn-danger btn-lg">Scissors ✂️</button>
-            </div>
-        </form>
 
-        {% if user_choice and computer_choice %}
-        <div class="mt-4 text-center">
-            <h4>You chose: {{ user_choice }}</h4>
-            <h4>Computer chose: {{ computer_choice }}</h4>
-            <h3 class="mt-3">Result: <span>{{ result }}</span></h3>
-            <a href="{% url 'rps_game:play' %}" class="btn btn-secondary mt-3">Play Again!</a>
+    <h2 class="text-center mb-4">Rock · Paper · Scissors</h2>
+
+
+    <!-- Centered, large buttons -->
+    <form method="post" class="d-flex justify-content-center gap-4 mb-5">
+        {% csrf_token %}
+        <button name="user_choice" value="R" class="btn btn-outline-primary btn-lg px-5 py-3">
+            🪨 Rock
+        </button>
+        <button name="user_choice" value="P" class="btn btn-outline-success btn-lg px-5 py-3">
+            📄 Paper
+        </button>
+        <button name="user_choice" value="S" class="btn btn-outline-danger btn-lg px-5 py-3">
+            ✂️ Scissors
+        </button>
+    </form>
+
+
+    <!-- Result alert with colored boxes -->
+    {% if result %}
+    <div class="text-center">
+        {% if 'win' in result|lower %}
+        <div class="result-box result-win">
+            You chose <strong>{{ user_choice }}</strong>,
+            computer chose <strong>{{ computer_choice }}</strong>. {{ result }}
         </div>
-        {% elif result and not user_choice %}
-        <div class="alert alert-warning mt-4 text-center">
-            {{ result }}
+        {% elif 'lose' in result|lower %}
+        <div class="result-box result-lose">
+            You chose <strong>{{ user_choice }}</strong>,
+            computer chose <strong>{{ computer_choice }}</strong>. {{ result }}
+        </div>
+        {% else %}
+        <div class="result-box result-tie">
+            You chose <strong>{{ user_choice }}</strong>,
+            computer chose <strong>{{ computer_choice }}</strong>. {{ result }}
         </div>
         {% endif %}
     </div>
+    {% endif %}
+
+
+    <!-- History table (unchanged) -->
+    {% if history %}
+    <h4 class="mt-5">Last 10 rounds</h4>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Date/Time</th>
+                <th>You</th>
+                <th>Computer</th>
+                <th>Result</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for h in history %}
+            <tr>
+                <td>{{ h.played_at|date:"M d, Y H:i" }}</td>
+                <td>{{ h.get_user_choice_display }}</td>
+                <td>{{ h.get_computer_choice_display }}</td>
+                <td>{{ h.get_result_display }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+
 </div>
+
+<style>
+    .result-box {
+        padding: 15px;
+        border-radius: 8px;
+        margin: 20px auto;
+        font-weight: bold;
+        max-width: 600px;
+    }
+
+    .result-win {
+        background-color: rgba(0, 128, 0, 0.2);
+        border: 2px solid rgba(0, 128, 0, 0.5);
+        color: #006400;
+    }
+
+    .result-lose {
+        background-color: rgba(255, 0, 0, 0.2);
+        border: 2px solid rgba(255, 0, 0, 0.5);
+        color: #8B0000;
+    }
+
+    .result-tie {
+        background-color: rgba(255, 255, 0, 0.2);
+        border: 2px solid rgba(255, 255, 0, 0.6);
+        color: #B8860B;
+    }
+</style>
+
 {% endblock %}

@@ -1,8 +1,8 @@
 from django.urls import path
 from . import views
 
-app_name = 'football_selection'  # Define namespace for the app
+app_name = 'football_selection'
 
 urlpatterns = [
-    path('', views.selection_form, name='form'),  # Form at /football/
+    path('', views.selection_form, name='form'),
 ]
