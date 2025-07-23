@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Football Team Selection{% endblock %}
 
@@ -29,8 +30,8 @@
                         <label for="user_gender" class="form-label">Gender</label>
                         <select class="form-select" id="user_gender" name="user_gender" required>
                             <option value="">Select Gender</option>
-                            <option value="MALE">Male</option>
-                            <option value="FEMALE">Female</option>
+                            <option value="MALE" {% if user_gender == 'MALE' %}selected{% endif %}>Male</option>
+                            <option value="FEMALE" {% if user_gender == 'FEMALE' %}selected{% endif %}>Female</option>
                         </select>
                     </div>
 
@@ -52,6 +53,74 @@
                 {% endif %}
             </div>
         </div>
+
+        <!-- Statistics and Animation Side by Side -->
+        {% if total_applications > 0 %}
+        <div class="card mt-4">
+            <div class="card-header bg-secondary text-white">
+                <h4 class="text-center mb-0">📊 Selection Statistics ({{ total_applications }} total applications)</h4>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <!-- Left Side: Statistics with Bigger Chart -->
+                    <div class="col-md-6">
+                        <div class="row mb-3">
+                            <div class="col-7">
+                                <canvas id="statsChart" width="300" height="300"></canvas>
+                            </div>
+                            <div class="col-5">
+                                <h6 class="small">Application Results:</h6>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between px-0 py-1">
+                                        <span class="small">✅ Selected:</span>
+                                        <span class="badge bg-success badge-sm">{{ chart_data.selected }}%</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between px-0 py-1">
+                                        <span class="small">👶 Too Young:</span>
+                                        <span class="badge bg-warning badge-sm">{{ chart_data.rejected_young }}%</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between px-0 py-1">
+                                        <span class="small">👴 Too Old:</span>
+                                        <span class="badge bg-secondary badge-sm">{{ chart_data.rejected_old }}%</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between px-0 py-1">
+                                        <span class="small">👩 Female:</span>
+                                        <span class="badge bg-danger badge-sm">{{ chart_data.rejected_female }}%</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Side: Lottie Animation -->
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-center align-items-center">
+                            <lottie-player 
+                                src="{% static 'football_selection/animations/load.json' %}"
+                                background="transparent"
+                                speed="1"
+                                style="width: 250px; height: 250px;"
+                                loop
+                                autoplay>
+                            </lottie-player>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <!-- Animation Only When No Stats Available -->
+        <div class="d-flex justify-content-center align-items-center my-4">
+            <lottie-player 
+                src="{% static 'football_selection/animations/load.json' %}"
+                background="transparent"
+                speed="1"
+                style="width: 200px; height: 200px;"
+                loop
+                autoplay>
+            </lottie-player>
+        </div>
+        {% endif %}
 
         <!-- Selection History Section - Table View -->
         {% if history %}
@@ -117,6 +186,61 @@
     </div>
 </div>
 
+<!-- Chart Data Script Tags -->
+{{ chart_data|json_script:"chart-data" }}
+{{ total_applications|json_script:"total-applications" }}
+
+<!-- Chart.js Script -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const totalApplications = JSON.parse(document.getElementById('total-applications').textContent);
+    
+    if (totalApplications > 0) {
+        const chartData = JSON.parse(document.getElementById('chart-data').textContent);
+        const ctx = document.getElementById('statsChart').getContext('2d');
+        const statsChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Selected', 'Too Young', 'Too Old', 'Female'],
+                datasets: [{
+                    data: [chartData.selected, chartData.rejected_young, chartData.rejected_old, chartData.rejected_female],
+                    backgroundColor: [
+                        '#28a745',  // Green for selected
+                        '#ffc107',  // Yellow for too young
+                        '#6c757d',  // Gray for too old
+                        '#dc3545'   // Red for female rejection
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            fontSize: 11,
+                            padding: 8,
+                            boxWidth: 12
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + context.parsed + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+
+<!-- Lottie Player Script -->
+<script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+
 <style>
     .fs-6 {
         font-size: 1.1rem !important;
@@ -126,6 +250,16 @@
         position: sticky;
         top: 0;
         z-index: 10;
+    }
+
+    #statsChart {
+        max-width: 300px !important;
+        max-height: 300px !important;
+    }
+
+    .badge-sm {
+        font-size: 0.65rem !important;
+        padding: 0.25rem 0.4rem !important;
     }
 </style>
 

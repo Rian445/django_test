@@ -1,90 +1,206 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block title %}Professional Compound Interest Calculator{% endblock %}
+
 {% block content %}
-
 <div class="container mt-4">
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">Compound Interest Calculator</h3>
-                </div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        <div class="form-group mb-3">
-                            <label for="principle">Principal Amount ($)</label>
-                            <input type="number" class="form-control" id="principle" name="principle" step="0.01"
-                                min="0.01" value="{{ principle|default:'' }}" required>
-                        </div>
-                        <div class="form-group mb-3">
-                            <label for="rate">Annual Interest Rate (%)</label>
-                            <input type="number" class="form-control" id="rate" name="rate" step="0.01" min="0.01"
-                                value="{{ rate|default:'' }}" required>
-                        </div>
-                        <div class="form-group mb-3">
-                            <label for="time">Time Period (years)</label>
-                            <input type="number" class="form-control" id="time" name="time" step="0.1" min="0.1"
-                                value="{{ time|default:'' }}" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-lg">Calculate</button>
-                    </form>
-                </div>
-            </div>
-
-            {% if error %}
-            <div class="alert alert-danger mt-3">
-                {{ error }}
-            </div>
-            {% endif %}
-
-            {% if total_amount %}
-            <div class="card mt-4">
-                <div class="card-header bg-success text-white">
-                    <h4 class="mb-0">Calculation Results</h4>
-                </div>
-                <div class="card-body">
-                    <p><strong>Principal:</strong> ${{ principle|floatformat:2 }}</p>
-                    <p><strong>Annual Rate:</strong> {{ rate|floatformat:2 }}%</p>
-                    <p><strong>Time Period:</strong> {{ time|floatformat:0 }} years</p>
-                    <p><strong>Future Value:</strong> ${{ total_amount }}</p>
-
-                    {% if is_millionaire %}
-                    <div class="alert alert-success">
-                        <strong>Congratulations!</strong> You'll become a millionaire in {{ millionaire_time }} years!
+    <h1>Professional Compound Interest Calculator</h1>
+    
+    <!-- Calculator Form -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="principle" class="form-label">Principal Amount ($)</label>
+                        <input type="number" class="form-control" id="principle" name="principle" 
+                               value="{{ principle|default:'' }}" step="0.01" required>
                     </div>
-                    {% endif %}
+                    <div class="col-md-4 mb-3">
+                        <label for="rate" class="form-label">Annual Interest Rate (%)</label>
+                        <input type="number" class="form-control" id="rate" name="rate" 
+                               value="{{ rate|default:'' }}" step="0.01" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="time" class="form-label">Time Period (Years)</label>
+                        <input type="number" class="form-control" id="time" name="time" 
+                               value="{{ time|default:'' }}" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg">Calculate</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Error Message -->
+    {% if error %}
+    <div class="alert alert-danger">
+        <h4>Error:</h4>
+        <p>{{ error }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Calculation Result -->
+    {% if total_amount %}
+    <div class="alert {% if is_millionaire %}alert-success{% else %}alert-info{% endif %}">
+        <h4>Calculation Result:</h4>
+        <p><strong>Principal:</strong> ${{ principle|floatformat:2 }}</p>
+        <p><strong>Annual Rate:</strong> {{ rate|floatformat:2 }}%</p>
+        <p><strong>Time Period:</strong> {{ time|floatformat:0 }} years</p>
+        <p><strong>Future Value:</strong> ${{ total_amount }}</p>
+        
+        {% if is_millionaire %}
+        <div class="mt-3 p-3 bg-success text-white rounded">
+            <h5>🎉 Congratulations! You'll be a millionaire!</h5>
+            <p><strong>Time to become millionaire:</strong> {{ millionaire_time }} years</p>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Millionaire Statistics Chart -->
+    {% if has_calculations %}
+    <div class="card mt-4">
+        <div class="card-header bg-secondary text-white">
+            <h4 class="text-center mb-0">📊 Millionaire Achievement Statistics ({{ chart_data.total_calculations }} total calculations)</h4>
+        </div>
+        <div class="card-body">
+            <div class="row align-items-center">
+                <!-- Left Side: Pie Chart -->
+                <div class="col-md-7">
+                    <canvas id="millionaireChart" width="350" height="350"></canvas>
+                </div>
+                
+                <!-- Right Side: Statistics -->
+                <div class="col-md-5">
+                    <h6 class="small">Achievement Breakdown:</h6>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between px-0 py-1">
+                            <span class="small">🎉 Millionaire Results:</span>
+                            <span class="badge bg-success badge-sm">{{ chart_data.millionaire_count }} ({{ chart_data.millionaire_percentage }}%)</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0 py-1">
+                            <span class="small">📈 Non-Millionaire Results:</span>
+                            <span class="badge bg-warning badge-sm">{{ chart_data.non_millionaire_count }} ({{ chart_data.non_millionaire_percentage }}%)</span>
+                        </li>
+                    </ul>
                 </div>
             </div>
-            {% endif %}
+        </div>
+    </div>
+    {% endif %}
 
+    <!-- Calculation History -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3>Calculation History</h3>
+        </div>
+        <div class="card-body">
             {% if history %}
-            <div class="card mt-4">
-                <div class="card-header bg-info text-white">
-                    <h4 class="mb-0">Calculation History</h4>
-                </div>
-                <div class="card-body">
-                    {% for calculation in history %}
-                    <div class="calculation-item border-bottom pb-2 mb-2">
-                        <p><strong>P:</strong> ${{ calculation.principle|floatformat:2 }} |
-                            <strong>R:</strong> {{ calculation.rate|floatformat:2 }}% |
-                            <strong>T:</strong> {{ calculation.time }} years
-                        </p>
-
-                        <p><strong>Future Value:</strong> ${{ calculation.total_amount|floatformat:2 }}</p>
-
-                        {% if calculation.millionaire_time %}
-                        <p><strong>Millionaire in:</strong> {{ calculation.millionaire_time|floatformat:1 }} years</p>
-                        {% endif %}
-
-                        <small class="text-muted">Calculated on: {{ calculation.timestamp|date:"M d, Y H:i" }}</small>
-                    </div>
-                    {% endfor %}
-                </div>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Principal</th>
+                            <th>Rate</th>
+                            <th>Time</th>
+                            <th>Future Value</th>
+                            <th>Millionaire Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for calculation in history %}
+                        <tr>
+                            <td>{{ calculation.timestamp|date:"M d, Y H:i" }}</td>
+                            <td>${{ calculation.principle|floatformat:2 }}</td>
+                            <td>{{ calculation.rate|floatformat:2 }}%</td>
+                            <td>{{ calculation.time }} years</td>
+                            <td>${{ calculation.total_amount|floatformat:2 }}</td>
+                            <td>
+                                {% if calculation.millionaire_time %}
+                                    <span class="badge bg-success">✅ Yes ({{ calculation.millionaire_time|floatformat:1 }} years)</span>
+                                {% else %}
+                                    <span class="badge bg-warning">❌ No</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
+            {% else %}
+            <p>No calculations yet. Perform your first calculation to see history!</p>
             {% endif %}
         </div>
     </div>
 </div>
 
+<!-- Chart Data Script Tags -->
+{{ chart_data|json_script:"chart-data" }}
+
+<!-- Chart.js Script -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const chartDataElement = document.getElementById('chart-data');
+    
+    if (chartDataElement) {
+        const chartData = JSON.parse(chartDataElement.textContent);
+        
+        if (chartData && chartData.total_calculations > 0) {
+            const ctx = document.getElementById('millionaireChart').getContext('2d');
+            const millionaireChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Millionaire Results', 'Non-Millionaire Results'],
+                    datasets: [{
+                        data: [chartData.millionaire_count, chartData.non_millionaire_count],
+                        backgroundColor: [
+                            '#28a745',  // Green for millionaire
+                            '#ffc107'   // Yellow for non-millionaire
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                fontSize: 11,
+                                padding: 8,
+                                boxWidth: 12
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const count = context.parsed;
+                                    const percentage = ((count / chartData.total_calculations) * 100).toFixed(1);
+                                    return context.label + ': ' + count + ' calculations (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+</script>
+
+<style>
+.badge-sm {
+    font-size: 0.65rem !important;
+    padding: 0.25rem 0.4rem !important;
+}
+
+#millionaireChart {
+    max-width: 350px !important;
+    max-height: 350px !important;
+}
+</style>
 {% endblock %}

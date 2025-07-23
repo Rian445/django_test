@@ -1,79 +1,193 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block title %}Shop{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
-    <h2 class="text-center mb-4">🛒 Our Shop</h2>
-
+    <h1>Shop</h1>
+    
     <!-- Products Section -->
-    <div class="row mb-5">
-        <div class="col-md-8">
-            <h4>Products</h4>
-            <div class="row">
-                {% for product in products %}
-                <div class="col-md-6 mb-3">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ product.name }}</h5>
-                            <p class="card-text">${{ product.price }}</p>
-                            <form method="post">
-                                {% csrf_token %}
-                                <input type="hidden" name="product_id" value="{{ product.id }}">
-                                <button type="submit" class="btn btn-primary">Add to Cart</button>
-                            </form>
-                        </div>
-                    </div>
+    <div class="row">
+        {% for product in products %}
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ product.name }}</h5>
+                    <p class="card-text">${{ product.price }}</p>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="product_id" value="{{ product.id }}">
+                        <button type="submit" class="btn btn-primary">Add to Cart</button>
+                    </form>
                 </div>
-                {% endfor %}
             </div>
         </div>
+        {% endfor %}
+    </div>
 
-        <!-- Cart Section -->
-        <div class="col-md-4">
-            <h4>Shopping Cart</h4>
+    <!-- Cart Section -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3>Your Cart</h3>
+        </div>
+        <div class="card-body">
             {% if cart_items %}
-            <ul class="list-group mb-3">
-                {% for item in cart_items %}
-                <li class="list-group-item d-flex justify-content-between">
-                    <span>{{ item.product.name }}</span>
-                    <span>${{ item.product.price }}</span>
-                </li>
-                {% endfor %}
-                <li class="list-group-item d-flex justify-content-between">
-                    <strong>Total: ${{ total }}</strong>
-                </li>
-            </ul>
-            <a href="{% url 'shop:checkout' %}" class="btn btn-success w-100">Proceed to Checkout</a>
+                <ul class="list-group list-group-flush">
+                    {% for item in cart_items %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        {{ item.product.name }}
+                        <span>${{ item.product.price }}</span>
+                    </li>
+                    {% endfor %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        <strong>Total: ${{ total }}</strong>
+                    </li>
+                </ul>
+                <div class="mt-3">
+                    <a href="{% url 'shop:checkout' %}" class="btn btn-success">Proceed to Checkout</a>
+                </div>
             {% else %}
-            <p class="text-muted">Your cart is empty</p>
+                <p>Your cart is empty</p>
             {% endif %}
         </div>
     </div>
 
-    <!-- Purchase History Section -->
-    {% if purchase_history %}
-    <div class="row">
-        <div class="col-12">
-            <h4>📊 Purchase History</h4>
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Date & Time</th>
-                        <th>Items Purchased</th>
-                        <th>Total Amount</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for purchase in purchase_history %}
-                    <tr>
-                        <td>{{ purchase.purchase_date|date:"M d, Y H:i" }}</td>
-                        <td>{{ purchase.items_purchased }}</td>
-                        <td>${{ purchase.total_amount }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <!-- Product Sales Statistics Chart with Percentages -->
+    {% if has_sales_data %}
+    <div class="card mt-4">
+        <div class="card-header bg-secondary text-white">
+            <h4 class="text-center mb-0">📊 Product Sales Statistics ({{ chart_data.total_sales }} total sales)</h4>
+        </div>
+        <div class="card-body">
+            <div class="row align-items-center">
+                <!-- Left Side: Pie Chart -->
+                <div class="col-md-7">
+                    <canvas id="salesChart" width="350" height="350"></canvas>
+                </div>
+                
+                <!-- Right Side: Sales Statistics with Percentages -->
+                <div class="col-md-5">
+                    <h6 class="small">Most Sold Products:</h6>
+                    <ul class="list-group list-group-flush">
+                        {% for product in chart_data.product_stats %}
+                        <li class="list-group-item d-flex justify-content-between px-0 py-1">
+                            <span class="small">🏆 {{ product.name }}:</span>
+                            <span class="badge bg-success badge-sm">{{ product.count }} ({{ product.percentage }}%)</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
     {% endif %}
+
+    <!-- Purchase History -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3>Recent Purchases</h3>
+        </div>
+        <div class="card-body">
+            {% if purchase_history %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Items Purchased</th>
+                            <th>Total Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for purchase in purchase_history %}
+                        <tr>
+                            <td>{{ purchase.purchase_date|date:"M d, Y H:i" }}</td>
+                            <td>{{ purchase.items_purchased }}</td>
+                            <td>${{ purchase.total_amount }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p>No purchases yet. Make your first purchase!</p>
+            {% endif %}
+        </div>
+    </div>
 </div>
+
+<!-- Chart Data Script Tags -->
+{{ chart_data|json_script:"chart-data" }}
+
+<!-- Chart.js Script with Percentage Display -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const chartDataElement = document.getElementById('chart-data');
+    
+    if (chartDataElement) {
+        const chartData = JSON.parse(chartDataElement.textContent);
+        
+        if (chartData && chartData.labels && chartData.labels.length > 0) {
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            const salesChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        data: chartData.percentages, // Use percentages for chart display
+                        backgroundColor: [
+                            '#28a745',  // Green
+                            '#007bff',  // Blue
+                            '#ffc107',  // Yellow
+                            '#dc3545',  // Red
+                            '#6f42c1',  // Purple
+                            '#20c997',  // Teal
+                            '#fd7e14',  // Orange
+                            '#e83e8c',  // Pink
+                            '#6c757d',  // Gray
+                            '#17a2b8'   // Cyan
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                fontSize: 11,
+                                padding: 8,
+                                boxWidth: 12
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const percentage = context.parsed;
+                                    const count = chartData.data[context.dataIndex];
+                                    return context.label + ': ' + count + ' sales (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+</script>
+
+<style>
+.badge-sm {
+    font-size: 0.65rem !important;
+    padding: 0.25rem 0.4rem !important;
+}
+
+#salesChart {
+    max-width: 350px !important;
+    max-height: 350px !important;
+}
+</style>
 {% endblock %}

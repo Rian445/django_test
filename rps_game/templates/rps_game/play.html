@@ -1,104 +1,237 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Rock-Paper-Scissors{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
+    <h1>Rock Paper Scissors Game</h1>
+    
+    <!-- Game Form -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-4">
+                        <button type="submit" name="user_choice" value="R" class="btn btn-primary btn-lg w-100 mb-2">
+                            🪨 Rock
+                        </button>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" name="user_choice" value="P" class="btn btn-success btn-lg w-100 mb-2">
+                            📄 Paper
+                        </button>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" name="user_choice" value="S" class="btn btn-warning btn-lg w-100 mb-2">
+                            ✂️ Scissors
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
 
-
-    <h2 class="text-center mb-4">Rock · Paper · Scissors</h2>
-
-
-    <!-- Centered, large buttons -->
-    <form method="post" class="d-flex justify-content-center gap-4 mb-5">
-        {% csrf_token %}
-        <button name="user_choice" value="R" class="btn btn-outline-primary btn-lg px-5 py-3">
-            🪨 Rock
-        </button>
-        <button name="user_choice" value="P" class="btn btn-outline-success btn-lg px-5 py-3">
-            📄 Paper
-        </button>
-        <button name="user_choice" value="S" class="btn btn-outline-danger btn-lg px-5 py-3">
-            ✂️ Scissors
-        </button>
-    </form>
-
-
-    <!-- Result alert with colored boxes -->
+    <!-- color-->
     {% if result %}
-    <div class="text-center">
-        {% if 'win' in result|lower %}
-        <div class="result-box result-win">
-            You chose <strong>{{ user_choice }}</strong>,
-            computer chose <strong>{{ computer_choice }}</strong>. {{ result }}
-        </div>
-        {% elif 'lose' in result|lower %}
-        <div class="result-box result-lose">
-            You chose <strong>{{ user_choice }}</strong>,
-            computer chose <strong>{{ computer_choice }}</strong>. {{ result }}
-        </div>
-        {% else %}
-        <div class="result-box result-tie">
-            You chose <strong>{{ user_choice }}</strong>,
-            computer chose <strong>{{ computer_choice }}</strong>. {{ result }}
-        </div>
+    <div class="alert 
+        {% if 'win' in result|lower %}alert-success
+        {% elif 'lose' in result|lower %}alert-danger  
+        {% elif 'tie' in result|lower %}alert-warning
+        {% else %}alert-info
+        {% endif %}">
+        <h4>Result: {{ result }}</h4>
+        {% if user_choice %}
+            <p>You chose: 
+                {% if user_choice == 'R' %}Rock
+                {% elif user_choice == 'P' %}Paper
+                {% elif user_choice == 'S' %}Scissors
+                {% endif %}
+            </p>
+            <p>Computer chose: 
+                {% if computer_choice == 'R' %}Rock
+                {% elif computer_choice == 'P' %}Paper
+                {% elif computer_choice == 'S' %}Scissors
+                {% endif %}
+            </p>
         {% endif %}
     </div>
     {% endif %}
 
-
-
-    {% if history %}
-    <h4 class="mt-5">Last 10 rounds</h4>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Date/Time</th>
-                <th>You</th>
-                <th>Computer</th>
-                <th>Result</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for h in history %}
-            <tr>
-                <td>{{ h.played_at|date:"M d, Y H:i" }}</td>
-                <td>{{ h.get_user_choice_display }}</td>
-                <td>{{ h.get_computer_choice_display }}</td>
-                <td>{{ h.get_result_display }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <!-- stat and ani -->
+    {% if total_games > 0 %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3>Game Statistics ({{ total_games }} total games)</h3>
+        </div>
+        <div class="card-body">
+            <div class="row align-items-center">
+                <!-- Left Side: Statistics with Chart -->
+                <div class="col-md-6">
+                    <div class="row mb-3">
+                        <div class="col-7">
+                            <canvas id="statsChart" width="300" height="300"></canvas>
+                        </div>
+                        <div class="col-5">
+                            <h6 class="small">Your Performance:</h6>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between px-0 py-1">
+                                    <span class="small">🏆 Wins:</span>
+                                    <span class="badge bg-success badge-sm">{{ chart_data.wins }}%</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between px-0 py-1">
+                                    <span class="small">😢 Losses:</span>
+                                    <span class="badge bg-danger badge-sm">{{ chart_data.losses }}%</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between px-0 py-1">
+                                    <span class="small">🤝 Ties:</span>
+                                    <span class="badge bg-warning badge-sm">{{ chart_data.ties }}%</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Side: Lottie Animation -->
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-center align-items-center">
+                        <lottie-player 
+                            src="{% static 'rps_game/animations/rps.json' %}"
+                            background="transparent"
+                            speed="1"
+                            style="width: 250px; height: 250px;"
+                            loop
+                            autoplay>
+                        </lottie-player>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Animation Only When No Stats Available -->
+    <div class="d-flex justify-content-center align-items-center my-4">
+        <lottie-player 
+            src="{% static 'rps_game/animations/rps.json' %}"
+            background="transparent"
+            speed="1"
+            style="width: 200px; height: 200px;"
+            loop
+            autoplay>
+        </lottie-player>
+    </div>
     {% endif %}
 
-
+    <!-- Game History -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Recent Games</h3>
+        </div>
+        <div class="card-body">
+            {% if history %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Date/Time</th>
+                            <th>You</th>
+                            <th>Computer</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for h in history %}
+                        <tr>
+                            <td>{{ h.played_at|date:"M d, Y H:i" }}</td>
+                            <td>{{ h.get_user_choice_display }}</td>
+                            <td>{{ h.get_computer_choice_display }}</td>
+                            <td>
+                                <span class="badge {% if h.result == 'W' %}bg-success{% elif h.result == 'L' %}bg-danger{% else %}bg-warning{% endif %}">
+                                    {{ h.get_result_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p>No games played yet. Start playing to see your history!</p>
+            {% endif %}
+        </div>
+    </div>
 </div>
 
+<!-- Chart Data Script Tags -->
+{{ chart_data|json_script:"chart-data" }}
+{{ total_games|json_script:"total-games" }}
+
+<!-- Chart.js Script -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const totalGames = JSON.parse(document.getElementById('total-games').textContent);
+    
+    if (totalGames > 0) {
+        const chartData = JSON.parse(document.getElementById('chart-data').textContent);
+        const ctx = document.getElementById('statsChart').getContext('2d');
+        const statsChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['You Win', 'You Lose', 'Tie'],
+                datasets: [{
+                    data: [chartData.wins, chartData.losses, chartData.ties],
+                    backgroundColor: [
+                        '#28a745',  // Green for wins
+                        '#dc3545',  // Red for losses  
+                        '#ffc107'   // Yellow for ties
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            fontSize: 11,
+                            padding: 8,
+                            boxWidth: 12
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + context.parsed + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+
+<!-- Lottie Player Script -->
+<script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+
+<!-- yellow again-->
 <style>
-    .result-box {
-        padding: 15px;
-        border-radius: 8px;
-        margin: 20px auto;
-        font-weight: bold;
-        max-width: 600px;
-    }
+.alert-warning {
+    color: #856404 !important;
+    background-color: #fff3cd !important;
+    border-color: #ffeaa7 !important;
+}
 
-    .result-win {
-        background-color: rgba(0, 128, 0, 0.2);
-        border: 2px solid rgba(0, 128, 0, 0.5);
-        color: #006400;
-    }
+#statsChart {
+    max-width: 300px !important;
+    max-height: 300px !important;
+}
 
-    .result-lose {
-        background-color: rgba(255, 0, 0, 0.2);
-        border: 2px solid rgba(255, 0, 0, 0.5);
-        color: #8B0000;
-    }
-
-    .result-tie {
-        background-color: rgba(255, 255, 0, 0.2);
-        border: 2px solid rgba(255, 255, 0, 0.6);
-        color: #B8860B;
-    }
+.badge-sm {
+    font-size: 0.65rem !important;
+    padding: 0.25rem 0.4rem !important;
+}
 </style>
-
 {% endblock %}

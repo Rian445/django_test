@@ -1,11 +1,11 @@
 from django.shortcuts import render
+from django.db.models import Count, Q
 import math
 from .models import CalculationHistory
 
-
 def calculate(request):
     """
-    Handles the compound interest calculation and displays history.
+    Handles the compound interest calculation and displays history with pie chart data.
     """
     context = {}
 
@@ -20,16 +20,13 @@ def calculate(request):
             else:
                 total_amount = principle * pow((1 + rate / 100), time)
 
-                # Calculate millionaire_time, handling cases where principle is already >= 1,000,000
                 if principle < 1_000_000:
-                    millionaire_time = math.log(
-                        1_000_000 / principle) / math.log(1 + rate / 100)
+                    millionaire_time = math.log(1_000_000 / principle) / math.log(1 + rate / 100)
                 else:
-                    millionaire_time = 0.0  # Already a millionaire
+                    millionaire_time = 0.0  
 
                 is_millionaire = total_amount >= 1000000 and principle < 1000000
 
-                # Save the calculation to history
                 CalculationHistory.objects.create(
                     principle=principle,
                     rate=rate,
@@ -52,8 +49,30 @@ def calculate(request):
         except Exception as e:
             context['error'] = f"An unexpected error occurred: {e}"
 
+    # pie chat data
+    stats = CalculationHistory.objects.aggregate(
+        millionaire_count=Count('id', filter=Q(millionaire_time__isnull=False)),
+        non_millionaire_count=Count('id', filter=Q(millionaire_time__isnull=True))
+    )
+    
+    total_calculations = stats['millionaire_count'] + stats['non_millionaire_count']
+    
+    # Calculate percentages for display
+    chart_data = {
+        'millionaire_count': stats['millionaire_count'],
+        'non_millionaire_count': stats['non_millionaire_count'],
+        'millionaire_percentage': round((stats['millionaire_count'] / total_calculations * 100), 1) if total_calculations > 0 else 0,
+        'non_millionaire_percentage': round((stats['non_millionaire_count'] / total_calculations * 100), 1) if total_calculations > 0 else 0,
+        'total_calculations': total_calculations
+    }
+
     # Retrieve all calculation history records ordered by most recent first
     history = CalculationHistory.objects.all().order_by('-timestamp')
-    context['history'] = history
+    
+    context.update({
+        'history': history,
+        'chart_data': chart_data,
+        'has_calculations': total_calculations > 0
+    })
 
     return render(request, 'calculator/calculate.html', context)
